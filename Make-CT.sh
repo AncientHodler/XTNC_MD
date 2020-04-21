@@ -71,25 +71,30 @@ fi
 
 #End Port Determining algorithm
 
-
 cd $path
 single=9
 multi=100
 
-if [ "$START"  -le "$single" ]; then
+if [ "$START"  -le "$single" ] && [ "$END"  -le "$single" ]; then
+for ((i=START;i<=END;i++))
+do
+sudo docker run -d CN=$i -p $P2P:$P2P - p $ZMQ:$ZMQ -p $RPC:$RPC -v $path/xtnc0$i:/XtendCash/SN_Data --name xtnc0$i xtnc_md
+done
+
+elif [ "$START"  -le "$single" ] && [ "$END"  -ge "$multi" ]; then
 for ((i=START;i<=single;i++))
 do
 sudo docker run -d CN=$i -p $P2P:$P2P - p $ZMQ:$ZMQ -p $RPC:$RPC -v $path/xtnc0$i:/XtendCash/SN_Data --name xtnc0$i xtnc_md
 done
-for ((i=10;i<=END;i++))
+for ((i=multi;i<=END;i++))
 do
 sudo docker run -d CN=$i -p $P2P:$P2P - p $ZMQ:$ZMQ -p $RPC:$RPC -v $path/xtnc$i:/XtendCash/SN_Data --name xtnc$i xtnc_md
 done
 
-else
+elif [ "$START"  -ge "$multi" ] && [ "$END"  -ge "$multi" ]; then
 for ((i=START;i<=END;i++))
 do
 sudo docker run -d CN=$i -p $P2P:$P2P - p $ZMQ:$ZMQ -p $RPC:$RPC -v $path/xtnc$i:/XtendCash/SN_Data --name xtnc$i xtnc_md
 done
-fi
 
+fi
