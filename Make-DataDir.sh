@@ -1,7 +1,7 @@
 #!/bin/bash
 echo "Type the folder path where you want the empty directories to be created"
-echo "Use this format:"
-echo "/home/user/SSD/XTNC_MD_Data"
+echo "Use this format similar to this:"
+echo "/home/user/SSD/BlockchainData/XTNC_MD_Data"
 read path
 
 cd $path

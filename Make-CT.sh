@@ -1,7 +1,7 @@
 #!/bin/bash
 echo "Type the folder path where the directories have been created"
-echo "Use this format:"
-echo "/home/user/XTNC_Data"
+echo "Use this a format similar to this example:"
+echo "/home/user/SSD/BlockchainData/XTNC_MD_Data"
 read path
 
 cd $path
