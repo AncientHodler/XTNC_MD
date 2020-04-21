@@ -1,0 +1,150 @@
+This Setup assumes Docker is installed on the current linux system
+If not install it with:
+sudo apt install docker.io
+
+#0)Step 0
+#Go to a folder of choice and git clone this repository:
+cd /home/user/SSD/BlockchainData
+git clone https://github.com/AncientHodler/XTNC_MD
+#this will create the repository inside
+/home/user/SSD/BlockchainData/XTNC_MD
+
+#1)Step 1
+#make a folder where the blockchain data will be stored
+mkdir -p /home/user/SSD/BlockchainData/XTNC_MD_Data
+#Inside it, there must be 50 different folders, one for each service node, for instance in format xtnc01. xtnc02, xtnc03, etc
+#This is done usind the Script file "createdir.sh"
+#When prompted, enter the above path, in this case:
+/home/user/SSD/BlockchainData/XTNC_MD_Data
+#This is where the individual data, for each SN will be stored
+
+#2)Step 2
+#Replacing AncientHodler SN Keys with your own.
+#Before building the docker image, one would need to replace my SN Keys with one's own.
+#If this isnt done, the setup will use AncientHodlers SN Keys
+#The Keys are located inside
+/home/user/SSD/BlockchainData/XTNC_MD/SN_Keys
+in their respective folders, xtnc1, xtnc2, xtnc3, etc....
+
+#3)Step 3
+#Go the the Repository folder, in our case
+/home/user/SSD/BlockchainData/XTNC_MD
+#and after replacing the SN_Keys
+#build the container image locally using the following command
+sudo docker build -t xtnc_md -f Dockerfile .
+#note the "space" and the "point" at the end of the command, otherwise it wont work
+
+#Information
+1)The SN Demons start with ports 33101 going up consecutively.
+A special script is written to skip the standard ports, which are 33123, 33124 and 33125.
+This script, "NodeConfig.sh" functions as entrypoint for the Docker Container
+This way, a standard demon can also be ran on the system where the multi container cluster is deployed,
+which can be used to acces a wallet, through the cli-wallet.
+2)The SN Demons all run with the following flags
+--confirm-external-bind
+--service-node
+--non-interactive
+3)A remote Demon is Setup up on a 32core System with 64gb RAM, which is piggy backed by the SN Demons through the following flag
+--add-peer 88.218.224.23
+4)Lastly, the SN Demons also piggy back, as a sync point to a pool set up by the discord user huser#7983
+--add-peer 51.68.191.40
+
+Both of these serveres are in Germany.
+
+Before Creating the Containers with Docker, (which will actually start them after creation)
+it is HIGHLY RECOMMENDED
+you manually copy an allready owned XTNC Blockchain Data, which is actually the "lmdb" folder, inside each of the SN Data Folders
+These are located as they were created in this example under 
+/home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc01
+/home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc02
+/home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc03
+etc
+etc
+
+Otherwise fully blasting 50 SN Demon Containers that fully need to sync from ZERO, will either take an infinity to sink,
+or wont start syncing at all.
+
+If such a folder isnt available, the logically course of action is to run at first a single Container, wait it to sync, and then copy the "lmdb" file to the other data folders.
+
+#How the containers work, MUST READ.
+The XTNC_SN Containers have two parts.
+The 1st part, containing the XTNC Demon, and other needed files, are inside the running container, and cannot be accesed from outside of the system
+The 2nd part, the storage of the XTNC Blockchaindata, is accesable from the outside, as it is a folder mounted to the container with the "-v" tag.
+
+When the containers are created, a variable CN is passed, which determines the number of the XTNC SN Container in its creation, which further determines the ports the SN Demon will run with.
+The "NodeConfig.sh" script takes this variable, and determines the working ports
+Also, when the containers are created, the ports of each of the container must be specified here as well, note that these are exactly the ports the "NodeConfig.sh" determines through the CN variable.
+
+From the list below, one needs to replace only the path 
+/home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc01
+with one's own datapath. The ports are allready written.
+Notice how on container Number 8, the ports used are 33122, then 33126, thus skipping 33123, 33124, and 33125, which are the standard ports.
+If a higher than 50 container number is required, one simply has to continue the port numbering consecutively.
+
+sudo docker run -d -e CN=1 -p 33101:33101 -p 33102:33102 -p 33103:33103 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc01:/XtendCash/SN_Data --name xtnc01 xtnc_md
+sudo docker run -d -e CN=2 -p 33104:33104 -p 33105:33105 -p 33106:33106 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc02:/XtendCash/SN_Data --name xtnc02 xtnc_md
+sudo docker run -d -e CN=3 -p 33107:33107 -p 33108:33108 -p 33109:33109 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc03:/XtendCash/SN_Data --name xtnc03 xtnc_md
+sudo docker run -d -e CN=4 -p 33110:33110 -p 33111:33111 -p 33112:33112 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc04:/XtendCash/SN_Data --name xtnc04 xtnc_md
+sudo docker run -d -e CN=5 -p 33113:33113 -p 33114:33114 -p 33115:33115 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc05:/XtendCash/SN_Data --name xtnc05 xtnc_md
+
+sudo docker run -d -e CN=6 -p 33116:33116 -p 33117:33117 -p 33118:33118 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc06:/XtendCash/SN_Data --name xtnc06 xtnc_md
+sudo docker run -d -e CN=7 -p 33119:33119 -p 33120:33120 -p 33121:33121 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc07:/XtendCash/SN_Data --name xtnc07 xtnc_md
+sudo docker run -d -e CN=8 -p 33122:33122 -p 33126:33126 -p 33127:33127 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc08:/XtendCash/SN_Data --name xtnc08 xtnc_md
+sudo docker run -d -e CN=9 -p 33128:33128 -p 33129:33129 -p 33130:33130 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc09:/XtendCash/SN_Data --name xtnc09 xtnc_md
+sudo docker run -d -e CN=10 -p 33131:33131 -p 33132:33132 -p 33133:33133 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc10:/XtendCash/SN_Data --name xtnc10 xtnc_md
+
+sudo docker run -d -e CN=11 -p 33134:33134 -p 33135:33135 -p 33136:33136 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc11:/XtendCash/SN_Data --name xtnc11 xtnc_md
+sudo docker run -d -e CN=12 -p 33137:33137 -p 33138:33138 -p 33139:33139 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc12:/XtendCash/SN_Data --name xtnc12 xtnc_md
+sudo docker run -d -e CN=13 -p 33140:33140 -p 33141:33141 -p 33142:33142 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc13:/XtendCash/SN_Data --name xtnc13 xtnc_md
+sudo docker run -d -e CN=14 -p 33143:33143 -p 33144:33144 -p 33145:33145 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc14:/XtendCash/SN_Data --name xtnc14 xtnc_md
+sudo docker run -d -e CN=15 -p 33146:33146 -p 33147:33147 -p 33148:33148 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc15:/XtendCash/SN_Data --name xtnc15 xtnc_md
+
+sudo docker run -d -e CN=16 -p 33149:33149 -p 33150:33150 -p 33151:33151 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc16:/XtendCash/SN_Data --name xtnc16 xtnc_md
+sudo docker run -d -e CN=17 -p 33152:33152 -p 33153:33153 -p 33154:33154 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc17:/XtendCash/SN_Data --name xtnc17 xtnc_md
+sudo docker run -d -e CN=18 -p 33155:33155 -p 33156:33156 -p 33157:33157 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc18:/XtendCash/SN_Data --name xtnc18 xtnc_md
+sudo docker run -d -e CN=19 -p 33158:33158 -p 33159:33159 -p 33160:33160 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc19:/XtendCash/SN_Data --name xtnc19 xtnc_md
+sudo docker run -d -e CN=20 -p 33161:33161 -p 33162:33162 -p 33163:33163 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc20:/XtendCash/SN_Data --name xtnc20 xtnc_md
+
+sudo docker run -d -e CN=21 -p 33164:33164 -p 33165:33165 -p 33166:33166 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc21:/XtendCash/SN_Data --name xtnc21 xtnc_md
+sudo docker run -d -e CN=22 -p 33167:33167 -p 33168:33168 -p 33169:33169 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc22:/XtendCash/SN_Data --name xtnc22 xtnc_md
+sudo docker run -d -e CN=23 -p 33170:33170 -p 33171:33171 -p 33172:33172 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc23:/XtendCash/SN_Data --name xtnc23 xtnc_md
+sudo docker run -d -e CN=24 -p 33173:33173 -p 33174:33174 -p 33175:33175 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc24:/XtendCash/SN_Data --name xtnc24 xtnc_md
+sudo docker run -d -e CN=25 -p 33176:33176 -p 33177:33177 -p 33178:33178 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc25:/XtendCash/SN_Data --name xtnc25 xtnc_md
+
+sudo docker run -d -e CN=26 -p 33179:33179 -p 33180:33180 -p 33181:33181 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc26:/XtendCash/SN_Data --name xtnc26 xtnc_md
+sudo docker run -d -e CN=27 -p 33182:33182 -p 33183:33183 -p 33184:33184 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc27:/XtendCash/SN_Data --name xtnc27 xtnc_md
+sudo docker run -d -e CN=28 -p 33185:33185 -p 33186:33186 -p 33187:33187 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc28:/XtendCash/SN_Data --name xtnc28 xtnc_md
+sudo docker run -d -e CN=29 -p 33188:33188 -p 33189:33189 -p 33190:33190 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc29:/XtendCash/SN_Data --name xtnc29 xtnc_md
+sudo docker run -d -e CN=30 -p 33191:33191 -p 33192:33192 -p 33193:33193 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc30:/XtendCash/SN_Data --name xtnc30 xtnc_md
+
+sudo docker run -d -e CN=31 -p 33194:33194 -p 33195:33195 -p 33196:33196 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc31:/XtendCash/SN_Data --name xtnc31 xtnc_md
+sudo docker run -d -e CN=32 -p 33197:33197 -p 33198:33198 -p 33199:33199 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc32:/XtendCash/SN_Data --name xtnc32 xtnc_md
+sudo docker run -d -e CN=33 -p 33200:33200 -p 33201:33201 -p 33202:33202 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc33:/XtendCash/SN_Data --name xtnc33 xtnc_md
+sudo docker run -d -e CN=34 -p 33203:33203 -p 33204:33204 -p 33205:33205 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc34:/XtendCash/SN_Data --name xtnc34 xtnc_md
+sudo docker run -d -e CN=35 -p 33206:33206 -p 33207:33207 -p 33208:33208 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc35:/XtendCash/SN_Data --name xtnc35 xtnc_md
+
+sudo docker run -d -e CN=36 -p 33209:33209 -p 33210:33210 -p 33211:33211 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc36:/XtendCash/SN_Data --name xtnc36 xtnc_md
+sudo docker run -d -e CN=37 -p 33212:33212 -p 33213:33213 -p 33214:33214 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc37:/XtendCash/SN_Data --name xtnc37 xtnc_md
+sudo docker run -d -e CN=38 -p 33215:33215 -p 33216:33216 -p 33217:33217 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc38:/XtendCash/SN_Data --name xtnc38 xtnc_md
+sudo docker run -d -e CN=39 -p 33218:33218 -p 33219:33219 -p 33220:33220 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc39:/XtendCash/SN_Data --name xtnc39 xtnc_md
+sudo docker run -d -e CN=40 -p 33221:33221 -p 33222:33222 -p 33223:33223 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc40:/XtendCash/SN_Data --name xtnc40 xtnc_md
+
+sudo docker run -d -e CN=41 -p 33224:33224 -p 33225:33225 -p 33226:33226 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc41:/XtendCash/SN_Data --name xtnc41 xtnc_md
+sudo docker run -d -e CN=42 -p 33227:33227 -p 33228:33228 -p 33229:33229 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc42:/XtendCash/SN_Data --name xtnc42 xtnc_md
+sudo docker run -d -e CN=43 -p 33230:33230 -p 33231:33231 -p 33232:33232 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc43:/XtendCash/SN_Data --name xtnc43 xtnc_md
+sudo docker run -d -e CN=44 -p 33233:33233 -p 33234:33234 -p 33235:33235 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc44:/XtendCash/SN_Data --name xtnc44 xtnc_md
+sudo docker run -d -e CN=45 -p 33236:33236 -p 33237:33237 -p 33238:33238 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc45:/XtendCash/SN_Data --name xtnc45 xtnc_md
+
+sudo docker run -d -e CN=46 -p 33239:33239 -p 33240:33240 -p 33241:33241 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc46:/XtendCash/SN_Data --name xtnc46 xtnc_md
+sudo docker run -d -e CN=47 -p 33242:33242 -p 33243:33243 -p 33244:33244 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc47:/XtendCash/SN_Data --name xtnc47 xtnc_md
+sudo docker run -d -e CN=48 -p 33245:33245 -p 33246:33246 -p 33247:33247 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc48:/XtendCash/SN_Data --name xtnc48 xtnc_md
+sudo docker run -d -e CN=49 -p 33248:33248 -p 33249:33249 -p 33250:33250 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc49:/XtendCash/SN_Data --name xtnc49 xtnc_md
+sudo docker run -d -e CN=50 -p 33251:33251 -p 33252:33252 -p 33253:33253 -v /home/user/SSD/BlockchainData/XTNC_MD_Data/xtnc50:/XtendCash/SN_Data --name xtnc50 xtnc_md
+
+#Entering container
+sudo docker exec -it xtnc01 bash
+
+#How to check sync and how to register node
+Simply run the created shortcuts, which can be found inside the XtendCash folder
+./1_reg.sh
+to start registration
